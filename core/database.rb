@@ -7,19 +7,11 @@ module Database
   DATABASE_CONFIG = YAML.load_file(DATABASE_CONFIG_PATH)
   DATABASE_CONFIG["init_command"] = "SET SESSION group_concat_max_len=4096;"
   REQUIRED_TABLES = %w(
-    championships
     competitions
-    competition_delegates
-    continents
-    countries
-    events
-    formats
     persons
-    preferred_formats
     results
     result_attempts
     round_types
-    users
   )
   INDICES = [
     "CREATE INDEX index_results_on_competition_id_person_id ON results (competition_id, person_id);",
