@@ -12,7 +12,6 @@ class MovingAverage < GroupedStatistic
       meaning that more recent values contribute more to the computed average.
       Here we use α = 0.8, meaning that the average emphasizes last ~5 results
       (weight of results older than 5 is around 1/3 in total and decreases quickly for particular results).
-      People with less than 5 averages are ignored (as there's not much data to base on).
     NOTE
     .strip
     @table_header = { "Moving average" => :right, "Person" => :left }
@@ -38,7 +37,7 @@ class MovingAverage < GroupedStatistic
       results = query_results
         .select { |result| result["event_id"] == event_id }
         .group_by { |result| result["person_link"] }
-        .select { |person_link, results| results.length >= 5 } # Arbitrarily remove people with less than 5 averages, as there is not enough data to base on.
+        .select { |person_link, results| results.length >= 1 }
         .map do |person_link, results|
           average = moving_average(results.map { |result| result["average"] })
           [average, person_link]
