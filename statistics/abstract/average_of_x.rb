@@ -32,7 +32,7 @@ class AverageOfX < GroupedStatistic
         ON round_type.id = result.round_type_id
       JOIN result_attempts ra
         ON ra.result_id = result.id
-        JOIN (
+      JOIN (
         SELECT event_id, person_id
         FROM (
           SELECT
@@ -46,25 +46,18 @@ class AverageOfX < GroupedStatistic
             SELECT
               r.event_id,
               r.person_id,
-              CASE
-                -- Events without official averages: rank by single
-                WHEN r.event_id IN ('333bf', '444bf', '555bf', '333mbf', '333mbo')
-                  THEN MIN(NULLIF(r.best, 0))
-
-                -- Normal events: rank by average
-                ELSE MIN(NULLIF(r.average, 0))
-              END AS best
+              MIN(r.best) AS best
             FROM results r
             JOIN persons p
               ON p.wca_id = r.person_id
              AND p.sub_id = 1
-            WHERE r.event_id NOT IN ('333mbf', '333mbo')
+            WHERE r.best > 0
+              AND r.event_id NOT IN ('333mbf', '333mbo')
             GROUP BY r.event_id, r.person_id
           ) AS person_best
-          WHERE person_best.best IS NOT NULL
         ) ranked_people
-        -- Take people from top 1000 average for optimization reasons.
-        WHERE world_rank <= 1000
+        -- Take people from top 2000 single for optimization reasons.
+        WHERE world_rank <= 2000
       ) top_people
         ON top_people.event_id = result.event_id
        AND top_people.person_id = result.person_id
