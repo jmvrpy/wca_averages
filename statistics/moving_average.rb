@@ -39,18 +39,19 @@ class MovingAverage < GroupedStatistic
     results = query_results
       .select { |result| result["event_id"] == event_id }
       .group_by { |result| result["person_link"] }
-      .select { |person_link, results| results.length >= 5 }
+      .select { |person_link, results| results.length >= 1 }
       .map do |person_link, results|
         average = moving_average(results.map { |result| result["average"] })
         country = results.first["country"]
         [average, person_link, country]
       end
       .sort_by! { |average, person_link, country| average }
-      .first(200)
-      .map do |average, person_link, country|
+      .first(1000)
+      .map.with_index(1) do |(average, person_link, country), rank|
         solve_time = SolveTime.new(event_id, :average, average)
-        [person_link, country, solve_time.clock_format]
+        [rank, person_link, country, solve_time.clock_format]
       end
+
     [event_name, results]
   end
 end
