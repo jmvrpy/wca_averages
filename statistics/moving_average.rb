@@ -14,7 +14,7 @@ class MovingAverage < GroupedStatistic
       (weight of results older than 5 is around 1/3 in total and decreases quickly for particular results).
     NOTE
     .strip
-    @table_header = { "Person" => :left, "Country" => :left, "Moving average" => :right}
+    @table_header = { "Rank" => :right, "Person" => :left, "Country" => :left, "Moving average" => :right}
   end
 
   def query
