@@ -8,7 +8,7 @@ class AverageOfX < GroupedStatistic
 
     @title = "Average of #{@solve_count}"
     @note = "#{@solve_count} consecutive official attempts are considered."
-    @table_header = { "Ao#{@solve_count}" => :right, "Person" => :left, "Times" => :left }
+    @table_header = { "Person" => :left, "Country" => :left, "Ao#{@solve_count}" => :right, "Times" => :left }
   end
 
   # Cache result of the query as it's the same for each subclass
@@ -20,12 +20,15 @@ class AverageOfX < GroupedStatistic
     <<-SQL
       SELECT
         CONCAT('[', person.name, '](https://www.worldcubeassociation.org/persons/', person.wca_id, ')') person_link,
+        country.name country,
         result.event_id,
         ra.value
       FROM results result
       JOIN persons person
         ON person.wca_id = result.person_id
        AND person.sub_id = 1
+       JOIN countries country
+         ON country.id = person.country_id
       JOIN competitions competition
         ON competition.id = result.competition_id
       JOIN round_types round_type
@@ -95,7 +98,7 @@ class AverageOfX < GroupedStatistic
           solve_times = best_aox_solves.map do |solve|
             solve == Float::INFINITY ? SolveTime::DNF : SolveTime.new(event_id, :single, solve)
           end
-          [best_aox.clock_format, person_link, solve_times.map(&:clock_format).join(', ')]
+          [person_link, country, best_aox.clock_format, solve_times.map(&:clock_format).join(', ')]
         end
       [event_name, results]
     end
