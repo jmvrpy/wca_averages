@@ -8,6 +8,7 @@ module Database
   DATABASE_CONFIG["init_command"] = "SET SESSION group_concat_max_len=4096;"
   REQUIRED_TABLES = %w(
     competitions
+    countries
     persons
     results
     result_attempts
