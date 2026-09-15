@@ -14,17 +14,19 @@ class MovingAverage < GroupedStatistic
       (weight of results older than 5 is around 1/3 in total and decreases quickly for particular results).
     NOTE
     .strip
-    @table_header = { "Moving average" => :right, "Person" => :left }
+    @table_header = { "Person" => :left, "Country" => :left, "Moving average" => :right}
   end
 
   def query
     <<-SQL
       SELECT
         CONCAT('[', person.name, '](https://www.worldcubeassociation.org/persons/', person.wca_id, ')') person_link,
+        country.name country,
         event_id,
         average
       FROM results result
       JOIN persons person ON person.wca_id = person_id AND person.sub_id = 1
+      JOIN countries country ON country.id = person.country_id
       JOIN competitions competition ON competition.id = competition_id
       JOIN round_types round_type ON round_type.id = round_type_id
       WHERE average > 0 AND event_id NOT IN ('333bf', '333mbf', '333mbo', '444bf', '555bf')
@@ -33,24 +35,25 @@ class MovingAverage < GroupedStatistic
   end
 
   def transform(query_results)
-    Events::ALL.map do |event_id, event_name|
-      results = query_results
-        .select { |result| result["event_id"] == event_id }
-        .group_by { |result| result["person_link"] }
-        .select { |person_link, results| results.length >= 1 }
-        .map do |person_link, results|
-          average = moving_average(results.map { |result| result["average"] })
-          [average, person_link]
-        end
-        .sort_by! { |average, person_link| average }
-        .first(1000)
-        .map do |average, person_link|
-          solve_time = SolveTime.new(event_id, :average, average)
-          [solve_time.clock_format, person_link]
-        end
-      [event_name, results]
-    end
+  Events::ALL.map do |event_id, event_name|
+    results = query_results
+      .select { |result| result["event_id"] == event_id }
+      .group_by { |result| result["person_link"] }
+      .select { |person_link, results| results.length >= 5 }
+      .map do |person_link, results|
+        average = moving_average(results.map { |result| result["average"] })
+        country = results.first["country"]
+        [average, person_link, country]
+      end
+      .sort_by! { |average, person_link, country| average }
+      .first(200)
+      .map do |average, person_link, country|
+        solve_time = SolveTime.new(event_id, :average, average)
+        [person_link, country, solve_time.clock_format]
+      end
+    [event_name, results]
   end
+end
 
   # Exponentially weighted average with bias correction.
   def moving_average(numbers)
