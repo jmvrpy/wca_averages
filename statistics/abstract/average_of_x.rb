@@ -8,7 +8,7 @@ class AverageOfX < GroupedStatistic
 
     @title = "Average of #{@solve_count}"
     @note = "#{@solve_count} consecutive official attempts are considered."
-    @table_header = { "Person" => :left, "Country" => :left, "Ao#{@solve_count}" => :right, "Times" => :left }
+    @table_header = { "Rank" => :right, "Person" => :left, "Country" => :left, "Ao#{@solve_count}" => :right, "Times" => :left }
   end
 
   # Cache result of the query as it's the same for each subclass
@@ -89,16 +89,16 @@ class AverageOfX < GroupedStatistic
                 data[:last_x_solves].shift
               end
             end
-          [person_link, data[:best_aox], data[:best_aox_solves]]
+          [person_link, attempts.first["country"], data[:best_aox], data[:best_aox_solves]]
         end
-        .reject { |person_link, best_aox, best_aox_solves| best_aox == SolveTime::DNF }
-        .sort_by! { |person_link, best_aox, best_aox_solves| best_aox }
+        .reject { |person_link, country, best_aox, best_aox_solves| best_aox == SolveTime::DNF }
+        .sort_by! { |person_link, country, best_aox, best_aox_solves| best_aox }
         .first(1000)
-        .map do |person_link, best_aox, best_aox_solves|
+        .map.with_index(1) do |(person_link, country, best_aox, best_aox_solves), rank|
           solve_times = best_aox_solves.map do |solve|
             solve == Float::INFINITY ? SolveTime::DNF : SolveTime.new(event_id, :single, solve)
           end
-          [person_link, country, best_aox.clock_format, solve_times.map(&:clock_format).join(', ')]
+          [rank, person_link, country, best_aox.clock_format, solve_times.map(&:clock_format).join(', ')]
         end
       [event_name, results]
     end
