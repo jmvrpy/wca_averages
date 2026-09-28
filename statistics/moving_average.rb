@@ -46,7 +46,7 @@ class MovingAverage < GroupedStatistic
         [average, person_link, country]
       end
       .sort_by! { |average, person_link, country| average }
-      .first(1000)
+      .first(2000)
       .map.with_index(1) do |(average, person_link, country), rank|
         solve_time = SolveTime.new(event_id, :average, average)
         [rank, person_link, country, solve_time.clock_format]
