@@ -59,7 +59,7 @@ class AverageOfX < GroupedStatistic
             GROUP BY r.event_id, r.person_id
           ) AS person_best
         ) ranked_people
-        WHERE world_rank <= 10000
+        WHERE world_rank <= 25000
       ) top_people
         ON top_people.event_id = result.event_id
        AND top_people.person_id = result.person_id
@@ -93,7 +93,7 @@ class AverageOfX < GroupedStatistic
         end
         .reject { |person_link, country, best_aox, best_aox_solves| best_aox == SolveTime::DNF }
         .sort_by! { |person_link, country, best_aox, best_aox_solves| best_aox }
-        .first(1000)
+        .first(2000)
         .map.with_index(1) do |(person_link, country, best_aox, best_aox_solves), rank|
           solve_times = best_aox_solves.map do |solve|
             solve == Float::INFINITY ? SolveTime::DNF : SolveTime.new(event_id, :single, solve)
